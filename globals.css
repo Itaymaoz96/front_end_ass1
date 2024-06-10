@@ -25,15 +25,12 @@ body {
     text-wrap: balance;
   }
 }
+
 .post {
   border: 2px solid #ccc; 
   padding: 20px; 
   margin-bottom: 20px; 
   background-color: cadetblue;
-}
-
-.post h2 {
-  margin-top: 0; 
 }
 
 .post p {
@@ -43,8 +40,9 @@ body {
 .pagination {
   text-align: center; 
 }
+
 button {
-  background-color: #04AA6D; /* Green */
+  background-color: #04AA6D;
   border: none;
   color: white;
   padding: 15px 32px;
