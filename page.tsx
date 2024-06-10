@@ -70,13 +70,13 @@ export default function Home() {
   return (
     <div>
       <div
-        className="text-center"
+        className="pagination"
         style={{ fontWeight: "bold", color: "#04AA6D", fontSize: "24px" }}
       >
         NOTES
       </div>
 
-      <div className="text-center">
+      <div className="pagination">
         {user_posts.map((current_post) => (
           <UserPost
             key={current_post.id}
@@ -88,7 +88,7 @@ export default function Home() {
         ))}
       </div>
 
-      <div className="text-center">
+      <div className="pagination">
         <button
           name="previous"
           onClick={() => handlePageClick(activePage == 1 ? 1 : activePage - 1)}
