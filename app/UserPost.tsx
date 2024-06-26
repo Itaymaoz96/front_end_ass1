@@ -1,6 +1,6 @@
 export const UserPost: React.FC<Post> = ({ id, title, author, content }) => {
   return (
-    <div key={id} id="{$id}" className="post">
+    <div key={id} id={`${id}`} className="post">
       <h1>{title}</h1>
       <small>
         By: {author.name} ({author.email})

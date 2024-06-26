@@ -101,7 +101,7 @@ export default function Home() {
 
         {handlePagesButtons().map((page: number) => (
           <button
-            name={"page-${page}"}
+            name={`page-${page}`}
             key="{page}"
             onClick={() => handlePageClick(page)}
             style={{ fontWeight: page === activePage ? "bolder" : "normal" }}
