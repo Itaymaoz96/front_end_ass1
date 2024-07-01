@@ -80,3 +80,10 @@
 2024-07-01T09:56:21.984Z - Method: GET, Path: /notes, Body: {}
 2024-07-01T09:56:23.968Z - Method: GET, Path: /notes, Body: {}
 2024-07-01T09:56:25.723Z - Method: GET, Path: /notes, Body: {}
+2024-07-01T10:34:00.558Z - Method: GET, Path: /notes/total, Body: {}
+2024-07-01T10:34:51.231Z - Method: GET, Path: /notes/total, Body: {}
+2024-07-01T10:34:51.293Z - Method: GET, Path: /notes, Body: {}
+2024-07-01T10:34:51.456Z - Method: GET, Path: /notes/total, Body: {}
+2024-07-01T10:34:52.256Z - Method: GET, Path: /notes, Body: {}
+2024-07-01T10:34:54.993Z - Method: GET, Path: /notes, Body: {}
+2024-07-01T10:34:55.736Z - Method: GET, Path: /notes, Body: {}
