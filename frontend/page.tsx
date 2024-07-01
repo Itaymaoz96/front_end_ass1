@@ -126,9 +126,9 @@ export default function Home() {
 
   const handle_inp_change = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    set_show_new_note((prev_note: any) => ({
+    set_new_note((prev_note: any) => ({
       ...prev_note,
-      [name]: value,
+      [name === "text_input_new_note" ? "content" : name]: value,
     }));
   };
 
@@ -222,7 +222,7 @@ export default function Home() {
               />
               <input
                 type="text"
-                name="content"
+                name="text_input_new_note"
                 value={new_note.content}
                 onChange={handle_inp_change}
                 placeholder="Content"
@@ -263,7 +263,7 @@ export default function Home() {
                     {current_post.author.email}
                   </div>
                   <input
-                    name={`text_input_save-${current_post.id}`}
+                    name={`text_input-${current_post.id}`}
                     type="text"
                     value={edit_cont}
                     onChange={(e) => set_edit_cont(e.target.value)}
