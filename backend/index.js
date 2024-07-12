@@ -78,22 +78,20 @@ app.get("/notes", (req, res) => {
     .skip(skip)
     .limit(limit)
     .then((notes) => {
-      res.json(notes);
-      res.status(200);
+      res.status(200).json(notes);
     })
     .catch((error) => {
-      return res.status(500);
+      res.status(500).json({ error: error.message });
     });
 });
 
 app.get("/notes/total", (req, res) => {
   Note.countDocuments({})
     .then((count) => {
-      res.json({ total: count });
-      res.status(200);
+      res.status(200).json({ total: count });
     })
     .catch((error) => {
-      return res.status(500);
+      res.status(500).json({ error: error.message });
     });
 });
 
@@ -111,30 +109,33 @@ app.post("/notes", (request, response) => {
     content: body.content,
   });
 
-  note.save().then((saved_Note) => {
-    response.json(saved_Note);
-    response.status(201);
-  });
+  note
+    .save()
+    .then((saved_Note) => {
+      response.status(201).json(saved_Note);
+    })
+    .catch((error) => {
+      response.status(500).json({ error: error.message });
+    });
 });
 
 app.get("/notes/:pos", async (request, response, next) => {
   const pos = parseInt(request.params.pos);
 
   if (isNaN(pos) || pos < 1) {
-    return response.status(404);
+    return response.status(404).json({ error: "Invalid position" });
   }
 
   try {
     const notes = await Note.find({}).sort({ _id: 1 });
 
     if (pos > notes.length) {
-      return response.status(404);
+      return response.status(404).json({ error: "No such note exists" });
     }
 
     const note_to_ret = notes[pos - 1];
 
-    response.json(note_to_ret);
-    response.status(200);
+    response.status(200).json(note_to_ret);
   } catch (error) {
     next(error);
   }
@@ -144,14 +145,14 @@ app.delete("/notes/:pos", async (request, response, next) => {
   const pos = parseInt(request.params.pos);
 
   if (isNaN(pos) || pos < 1) {
-    return response.status(404);
+    return response.status(404).json({ error: "Invalid position" });
   }
 
   try {
     const notes = await Note.find({}).sort({ _id: 1 });
 
     if (pos > notes.length) {
-      return response.status(404);
+      return response.status(404).json({ error: "No such note exists" });
     }
 
     const note_to_delete = notes[pos - 1];
@@ -167,7 +168,7 @@ app.put("/notes/:pos", async (request, response, next) => {
   const body = request.body;
 
   if (isNaN(pos) || pos < 1) {
-    return response.status(404);
+    return response.status(404).json({ error: "Invalid position" });
   }
 
   const updated_note = {
@@ -178,7 +179,7 @@ app.put("/notes/:pos", async (request, response, next) => {
     const notes = await Note.find({}).sort({ _id: 1 });
 
     if (pos > notes.length) {
-      return response.status(404);
+      return response.status(404).json({ error: "No such note exists" });
     }
 
     const note_to_update = notes[pos - 1];
@@ -189,8 +190,7 @@ app.put("/notes/:pos", async (request, response, next) => {
       { new: true }
     );
 
-    response.json(result);
-    response.status(200);
+    response.status(200).json(result);
   } catch (error) {
     next(error);
   }
