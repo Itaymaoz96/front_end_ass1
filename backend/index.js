@@ -12,6 +12,25 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
+const authMiddleware = (req, res, next) => {
+  const authorization = req.get("authorization");
+  if (authorization && authorization.startsWith("Bearer ")) {
+    const token = authorization.replace("Bearer ", "");
+    try {
+      const decodedToken = jwt.verify(token, process.env.SECRET);
+      if (!decodedToken.id) {
+        return res.status(401).json({ error: "Invalid token" });
+      }
+      req.userId = decodedToken.id; // Store the user ID in the request object
+      next();
+    } catch (error) {
+      return res.status(401).json({ error: "Token invalid or expired" });
+    }
+  } else {
+    return res.status(401).json({ error: "Token missing" });
+  }
+};
+
 const requestLogger = (request, response, next) => {
   const logEntry = `${new Date().toISOString()} - Method: ${
     request.method
@@ -170,28 +189,27 @@ const getTokenFrom = (request) => {
   return null;
 };
 
-app.post("/notes", async (request, response) => {
+app.post("/notes", authMiddleware, async (request, response) => {
   const body = request.body;
-  const tok = getTokenFrom(request);
 
-  try {
-    const { _id } = jwt.verify(tok, process.env.SECRET);
-  } catch (error) {
-    response.status(401).json({ error: "unAuthorized" });
+  const user = await User.findById(request.userId);
+
+  if (!user) {
+    return response.status(401).json({ error: "unAuthorized" });
   }
 
   const note = new Note({
     id: body.id,
     title: body.title,
     author: {
-      name: body.author.name,
-      email: body.author.email,
+      name: user.name,
+      email: user.email,
     },
     content: body.content,
   });
 
   const savedNote = await note.save();
-  response.json(savedNote);
+  response.status(201).json(savedNote);
 });
 
 app.get("/notes/:pos", async (request, response, next) => {
@@ -215,7 +233,7 @@ app.get("/notes/:pos", async (request, response, next) => {
   }
 });
 
-app.delete("/notes/:pos", async (request, response, next) => {
+app.delete("/notes/:pos", authMiddleware, async (request, response, next) => {
   const pos = parseInt(request.params.pos);
 
   if (isNaN(pos) || pos < 1) {
@@ -230,13 +248,13 @@ app.delete("/notes/:pos", async (request, response, next) => {
     }
 
     const note_to_delete = notes[pos - 1];
-    const tok = getTokenFrom(request);
-    const { _id } = jwt.verify(tok, process.env.SECRET);
-    const pp = await User.findOne(_id);
-    if (pp.name != note_to_delete.author.name) {
-      return response
-        .status(403)
-        .json({ error: "forbidden access to another user" });
+
+    const user = await User.findById(request.userId);
+
+    if (!user || user.name !== note_to_delete.author.name) {
+      return response.status(403).json({
+        error: "Forbidden access to another user's note",
+      });
     }
 
     await Note.findByIdAndDelete(note_to_delete._id);
@@ -246,7 +264,7 @@ app.delete("/notes/:pos", async (request, response, next) => {
   }
 });
 
-app.put("/notes/:pos", async (request, response, next) => {
+app.put("/notes/:pos", authMiddleware, async (request, response, next) => {
   const pos = parseInt(request.params.pos);
   const body = request.body;
 
@@ -267,15 +285,14 @@ app.put("/notes/:pos", async (request, response, next) => {
 
     const note_to_update = notes[pos - 1];
 
-    const tok = getTokenFrom(request);
-    const { _id } = jwt.verify(tok, process.env.SECRET);
-    const pp = await User.findOne(_id);
+    const user = await User.findById(request.userId);
 
-    if (pp.name != note_to_update.author.name) {
+    if (!user || user.name !== note_to_update.author.name) {
       return response
         .status(403)
-        .json({ error: "forbidden access to another user" });
+        .json({ error: "Forbidden access to another user's note" });
     }
+
     const result = await Note.findByIdAndUpdate(
       note_to_update._id,
       { $set: updated_note },
@@ -291,25 +308,6 @@ app.put("/notes/:pos", async (request, response, next) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-const authMiddleware = (req, resp, next) => {
-  const authorization = req.get("authorization");
-  if (authorization && authorization.toLowerCase().startsWith("bearer ")) {
-    const token = authorization.substring(7);
-    try {
-      const decodedToken = jwt.verify(token, SECRET);
-      if (!token || !decodedToken.id) {
-        return resp.status(401).json({ error: "Unauthorized" });
-      }
-      req.user = decodedToken;
-      next();
-    } catch (error) {
-      return resp.status(401).json({ error: "Unauthorized" });
-    }
-  } else {
-    return resp.status(401).json({ error: "Unauthorized" });
-  }
-};
 
 // {
 //   "id": 555555555,
