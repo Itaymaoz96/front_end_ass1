@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Post, UserPost } from "../components/UserPost";
 import "../app/globals.css";
 import { GetStaticProps } from "next";
@@ -22,6 +22,7 @@ interface HomeProps {
   initialTotalPosts: number;
 }
 export default function Home(props: HomeProps) {
+  const initialRender = useRef(true);
   const [activePage, setActivePage] = useState(1);
   const [total_num_of_pages, set_total_num_of_pages] = useState(
     props.initialTotalPages
@@ -51,7 +52,9 @@ export default function Home(props: HomeProps) {
   const [loginError, setLoginError] = useState(""); // State for error message
   const [successMessage, setSuccessMessage] = useState(""); // State for success message
 
-  const [cache, setCache] = useState<{ [page: number]: Post[] }>({});
+  const [cache, setCache] = useState<{ [page: number]: Post[] }>({
+    1: props.initialNotes,
+  });
 
   useEffect(() => {
     fetch_notes();
@@ -398,18 +401,24 @@ export default function Home(props: HomeProps) {
   }
 
   useEffect(() => {
-    const fetchTotalNotes = async () => {
-      try {
-        const response = await axios.get(NOTES_URL + "/total");
-        set_total_num_of_posts(response.data.total);
-        set_total_num_of_pages(Math.ceil(response.data.total / POSTS_PER_PAGE));
-      } catch (error) {
-        console.log("Encountered an error:", error);
-      }
-    };
+    if (initialRender.current) {
+      initialRender.current = false;
+    } else {
+      const fetchTotalNotes = async () => {
+        try {
+          const response = await axios.get(NOTES_URL + "/total");
+          set_total_num_of_posts(response.data.total);
+          set_total_num_of_pages(
+            Math.ceil(response.data.total / POSTS_PER_PAGE)
+          );
+        } catch (error) {
+          console.log("Encountered an error:", error);
+        }
+      };
 
-    fetchTotalNotes();
-  });
+      fetchTotalNotes();
+    }
+  }, [total_num_of_posts]);
 
   useEffect(() => {
     const loggedUserJSON = localStorage.getItem("userToken");
@@ -514,7 +523,6 @@ export default function Home(props: HomeProps) {
       set_total_num_of_posts(newTotalPosts);
       const newTotalPages = Math.ceil(newTotalPosts / POSTS_PER_PAGE);
       set_total_num_of_pages(newTotalPages);
-
       // Adjust active page if the current page is empty
       if (activePage > newTotalPages) {
         setActivePage(newTotalPages);
